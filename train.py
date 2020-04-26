@@ -112,7 +112,6 @@ def run():
     test()
     exp_lr_scheduler.step()
 
-
 if __name__ == '__main__':
   run()
   torch.save(model, 'model_1.pt')
