@@ -15,12 +15,13 @@ import torch.nn.functional as F
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 def train():
+  """Training the model"""
   print('=== TRAINING ===')
+  model.train()
   counter = 0
   acc_counter = 0
   loss_counter = 0
   batch_counter = 0
-  model.train()
   for inputs, labels in train_dataloader:
     inputs, labels = inputs.to(device), labels.to(device)
 
@@ -28,7 +29,7 @@ def train():
     outputs = model(inputs)
 
     loss = criterion(outputs, labels)
-    
+
     preds = torch.argmax(outputs, 1)
     acc = (preds == labels).sum().item()
 
@@ -42,7 +43,9 @@ def train():
 
     if(counter % 100 == 0):
       print(f'Accuracy: {round(acc_counter/batch_counter, 4)} \t Loss: {loss_counter/counter}')
+
 def test():
+  """Validating the test set"""
   print('=== VALIDATION ===')
   model.eval()
   acc_counter = 0
@@ -62,6 +65,7 @@ def test():
       preds = torch.argmax(outputs, 1)
       acc = (preds == labels).sum().item()
       c = (preds == labels)
+
       for i in range(len(labels)):
         label = labels[i]
         class_correct[label] += c[i].item()
@@ -76,10 +80,9 @@ def test():
   for i in range(len(class_names)):
     print(f'Accuracy of {class_names[i]} : {round(class_correct[i]/class_total[i], 4)}')
 
+# Creating the train/test dataloaders from images
 root_data_dir = 'data'
-
 transform = transforms.Compose([transforms.RandomResizedCrop(224),transforms.RandomHorizontalFlip(),transforms.ToTensor(),transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
-
 total_dataset = datasets.ImageFolder(root_data_dir, transform)
 
 train_size = int(0.8 * len(total_dataset))
@@ -92,21 +95,16 @@ test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=10, shuff
 class_names = total_dataset.classes
 num_classes = len(class_names)
 
-# Implementing model
+# Implementing the model
 model = models.resnet18(pretrained=True)
-
 num_features = model.fc.in_features
 model.fc = nn.Linear(num_features, num_classes)
-
 model = model.to(device) 
-
 criterion = nn.CrossEntropyLoss()
-
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
 
 EPOCH_SIZE = 100
-
 for epoch in range(EPOCH_SIZE):
   print(f'=== EPOCH {epoch} / {EPOCH_SIZE} ===')
   train()
