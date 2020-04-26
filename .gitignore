@@ -1,3 +1,4 @@
 *.pt
 data/
 raw_data/
+*.csv
